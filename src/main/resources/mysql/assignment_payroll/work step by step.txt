@@ -1,0 +1,212 @@
+CREATE SCHEMA inic_db_plate;
+USE inic_db_plate;
+
+CREATE TABLE `inic_db_plate`.`employee` (
+  `employee_id` INT NOT NULL AUTO_INCREMENT,
+  `ime` VARCHAR(45) NOT NULL,
+  `prezime` VARCHAR(45) NOT NULL,
+  `datum_rodjenja` DATE NULL,
+  `email` VARCHAR(45) NULL,
+  `korisnicko_ime` VARCHAR(45) NULL,
+  `krakta_biografija` TEXT(255) NULL,
+  `fotografija` MEDIUMBLOB NULL,
+  PRIMARY KEY (`employee_id`));
+
+ALTER TABLE `inic_db_plate`.`employee`
+CHANGE COLUMN `datum_rodjenja` `datum_rodjenja` DATETIME NULL DEFAULT NULL ;
+
+INSERT INTO employee (employee_id,ime,prezime,datum_rodjenja,email,korisnicko_ime) VALUES (1,'Petar','Petrovic','2009-12-31','petar@gmail.com','pera');
+INSERT INTO employee (employee_id,ime,prezime,datum_rodjenja,email,korisnicko_ime) VALUES (2,'Marko','Maric','2010-12-31','marko@gmail.com','mare');
+INSERT INTO employee (employee_id,ime,prezime,datum_rodjenja,email,korisnicko_ime) VALUES (3,'Milan','Pantic','2011-12-31','milan@gmail.com','milan');
+
+CREATE TABLE `inic_db_plate`.`plata_tip` (
+  `plata_tip_id` TINYINT(1) NOT NULL,
+  `tip_zaposlenja` VARCHAR(45) NOT NULL,
+  PRIMARY KEY (`plata_tip_id`));
+
+INSERT INTO plata_tip (plata_tip_id, tip_zaposlenja) VALUES (1,'nedefinisano');
+INSERT INTO plata_tip (plata_tip_id, tip_zaposlenja) VALUES (2,'ugovor na odredjeno');
+INSERT INTO plata_tip (plata_tip_id, tip_zaposlenja) VALUES (3,'ugovor na neodredjeno');
+
+CREATE TABLE `inic_db_plate`.`plata` (
+  `plata_id` INT NOT NULL AUTO_INCREMENT,
+  `number` VARCHAR(45) NOT NULL,
+  `time` DATETIME NOT NULL,
+  `iznos` DECIMAL(10,2) UNSIGNED NOT NULL,
+  `employee_id` INT NOT NULL,
+  `plata_tip_id` INT NOT NULL,
+  `status_isplate` BIT(1) NOT NULL,
+  PRIMARY KEY (`plata_id`));
+
+CREATE TABLE `inic_db_plate`.`isplata` (
+  `isplata_id` INT NOT NULL AUTO_INCREMENT,
+  `employee_id` INT NOT NULL,
+  `plata_tip_id` TINYINT(1) NOT NULL,
+  PRIMARY KEY (`isplata_id`),
+  INDEX `fk_employee_id_idx` (`employee_id` ASC) VISIBLE,
+  INDEX `fk_plata_tip_id_idx` (`plata_tip_id` ASC) VISIBLE,
+  CONSTRAINT `fk_employee_id`
+    FOREIGN KEY (`employee_id`)
+    REFERENCES `inic_db_plate`.`employee` (`employee_id`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+  CONSTRAINT `fk_plata_tip_id`
+    FOREIGN KEY (`plata_tip_id`)
+    REFERENCES `inic_db_plate`.`plata_tip` (`plata_tip_id`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE);
+
+
+CREATE TABLE `inic_db_plate`.`poruka` (
+  `poruka_id` INT NOT NULL AUTO_INCREMENT,
+  `tekst_poruke` TEXT(3000) NOT NULL,
+  `time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `status` BIT(1) NOT NULL,
+  `posiljalac_id` INT NOT NULL,
+  `primaoc_id` INT NOT NULL,
+  PRIMARY KEY (`poruka_id`));
+
+ALTER TABLE `inic_db_plate`.`poruka`
+ADD INDEX `fk_posiljalac_id_idx` (`posiljalac_id` ASC) VISIBLE,
+ADD INDEX `fk_primaoc_id_idx` (`primaoc_id` ASC) VISIBLE;
+;
+ALTER TABLE `inic_db_plate`.`poruka`
+ADD CONSTRAINT `fk_posiljalac_id`
+  FOREIGN KEY (`posiljalac_id`)
+  REFERENCES `inic_db_plate`.`employee` (`employee_id`)
+  ON DELETE CASCADE
+  ON UPDATE CASCADE,
+ADD CONSTRAINT `fk_primaoc_id`
+  FOREIGN KEY (`primaoc_id`)
+  REFERENCES `inic_db_plate`.`employee` (`employee_id`)
+  ON DELETE NO ACTION
+  ON UPDATE CASCADE;
+
+
+ALTER TABLE `inic_db_plate`.`plata`
+CHANGE COLUMN `plata_tip_id` `plata_tip_id` TINYINT(1) NOT NULL ;
+
+ALTER TABLE `inic_db_plate`.`isplata`
+DROP FOREIGN KEY `fk_plata_tip_id`,
+DROP FOREIGN KEY `fk_employee_id`;
+ALTER TABLE `inic_db_plate`.`isplata`
+DROP INDEX `fk_plata_tip_id_idx` ,
+DROP INDEX `fk_employee_id_idx` ;
+;
+
+ALTER TABLE `inic_db_plate`.`plata`
+DROP INDEX `fk_plata_tip_id_idx` ,
+DROP INDEX `fk_employee_id_idx` ;
+;
+
+
+ALTER TABLE `inic_db_plate`.`plata_tip`
+CHANGE COLUMN `plata_tip_id` `plata_tip_id` TINYINT(1) NOT NULL AUTO_INCREMENT ;
+
+ALTER TABLE `inic_db_plate`.`plata`
+ADD INDEX `fk_employee_id_idx` (`employee_id` ASC) VISIBLE,
+ADD INDEX `fk_plata_tip_id_idx` (`plata_tip_id` ASC) VISIBLE;
+;
+
+ALTER TABLE `inic_db_plate`.`plata`
+ADD CONSTRAINT `fk_employee_id`
+  FOREIGN KEY (`employee_id`)
+  REFERENCES `inic_db_plate`.`employee` (`employee_id`)
+  ON DELETE NO ACTION
+  ON UPDATE CASCADE,
+ADD CONSTRAINT `fk_plata_tip_id`
+  FOREIGN KEY (`plata_tip_id`)
+  REFERENCES `inic_db_plate`.`plata_tip` (`plata_tip_id`)
+  ON DELETE NO ACTION
+  ON UPDATE CASCADE;
+
+ALTER TABLE `inic_db_plate`.`isplata`
+DROP COLUMN `plata_tip_id`;
+
+ALTER TABLE `inic_db_plate`.`isplata`
+DROP INDEX `fk_employee_id_idx` ;
+;
+
+DELETE FROM `inic_db_plate`.`employee` WHERE (`employee_id` = '3');
+DELETE FROM `inic_db_plate`.`employee` WHERE (`employee_id` = '2');
+DELETE FROM `inic_db_plate`.`employee` WHERE (`employee_id` = '1');
+
+ALTER TABLE `inic_db_plate`.`employee`
+AUTO_INCREMENT = 1 ;
+
+ALTER TABLE `inic_db_plate`.`isplata`
+DROP INDEX `fk_employee_id_idx` ;
+;
+
+ALTER TABLE `inic_db_plate`.`isplata`
+DROP INDEX `fk_employee_id_idx` ;
+;
+
+ALTER TABLE `inic_db_plate`.`isplata`
+ADD INDEX `fk_employee_id_isplata_idx` (`employee_id` ASC) VISIBLE;
+;
+ALTER TABLE `inic_db_plate`.`isplata`
+ADD CONSTRAINT `fk_employee_id_isplata`
+  FOREIGN KEY (`employee_id`)
+  REFERENCES `inic_db_plate`.`employee` (`employee_id`)
+  ON DELETE NO ACTION
+  ON UPDATE CASCADE;
+
+ALTER TABLE `inic_db_plate`.`isplata`
+ADD COLUMN `plata_tip_id` TINYINT(1) NOT NULL AFTER `employee_id`;
+
+ALTER TABLE `inic_db_plate`.`isplata`
+ADD INDEX `fk_plata_tip_id_isplata_idx` (`plata_tip_id` ASC) VISIBLE;
+;
+
+ALTER TABLE `inic_db_plate`.`isplata`
+ADD CONSTRAINT `fk_plata_tip_id_isplata`
+  FOREIGN KEY (`plata_tip_id`)
+  REFERENCES `inic_db_plate`.`plata_tip` (`plata_tip_id`)
+  ON DELETE NO ACTION
+  ON UPDATE CASCADE;
+
+INSERT INTO employee (employee_id,ime,prezime,datum_rodjenja,email,korisnicko_ime) VALUES (1,'Petar','Petrovic','2009-12-31','petar@gmail.com','pera');
+INSERT INTO employee (employee_id,ime,prezime,datum_rodjenja,email,korisnicko_ime) VALUES (2,'Marko','Maric','2010-12-31','marko@gmail.com','mare');
+INSERT INTO employee (employee_id,ime,prezime,datum_rodjenja,email,korisnicko_ime) VALUES (3,'Milan','Pantic','2011-12-31','milan@gmail.com','milan');
+
+
+INSERT INTO `inic_db_plate`.`isplata` (`isplata_id`, `employee_id`, `plata_tip_id`) VALUES ('1', '1', '2');
+INSERT INTO `inic_db_plate`.`isplata` (`isplata_id`, `employee_id`, `plata_tip_id`) VALUES ('2', '2', '2');
+INSERT INTO `inic_db_plate`.`isplata` (`isplata_id`, `employee_id`, `plata_tip_id`) VALUES ('3', '3', '3');
+
+INSERT INTO `inic_db_plate`.`plata` (`plata_id`, `number`, `time`, `iznos`, `employee_id`, `plata_tip_id`, `status_isplate`) VALUES ('1', '1', '2024-05-04', '100', '1', '2', b'0');
+INSERT INTO `inic_db_plate`.`plata` (`plata_id`, `number`, `time`, `iznos`, `employee_id`, `plata_tip_id`, `status_isplate`) VALUES ('2', '2', '2024-05-04', '1000', '2', '3', b'1');
+INSERT INTO `inic_db_plate`.`plata` (`plata_id`, `number`, `time`, `iznos`, `employee_id`, `plata_tip_id`, `status_isplate`) VALUES ('3', '3', '2024-05-04', '10000', '3', '2', b'1');
+
+INSERT INTO `inic_db_plate`.`poruka` (`poruka_id`, `tekst_poruke`, `time`, `status`, `posiljalac_id`, `primaoc_id`) VALUES (1, 'tekst 1', '2024-05-04', 0, 1, 2);
+INSERT INTO `inic_db_plate`.`poruka` (`poruka_id`, `tekst_poruke`, `time`, `status`, `posiljalac_id`, `primaoc_id`) VALUES (2, 'tekst 2', '2024-05-04', 0, 2, 3);
+INSERT INTO `inic_db_plate`.`poruka` (`poruka_id`, `tekst_poruke`, `time`, `status`, `posiljalac_id`, `primaoc_id`) VALUES (3, 'tekst 3', '2024-05-04', 1, 1, 2);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
